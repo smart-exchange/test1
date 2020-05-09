@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=750,user-scalable=no">
+  <title id="title" style="color: #2adc00">t</title>
+</head>
+<style>
+  * {
+    padding: 0px;
+    margin: 0px;
+    font-size: 24px;
+  }
+
+  .f-left {
+    float: left;
+  }
+
+  .f-right {
+    float: right;
+  }
+
+  .clear {
+    clear: both;
+  }
+
+  .green {
+    color: green;
+  }
+
+  .red {
+    color: red;
+  }
+
+  #bodyw {
+    height: 100px;
+    width: 300px;
+    position: fixed;
+    background: red;
+    right: 0px;
+    bottom: 0px;
+    z-index: 100;
+    opacity: 0.03;
+  }
+
+  .form-wrap {
+    box-shadow: 0px 1px 1px 2px gainsboro;
+    padding: 10px;
+    margin: 10px auto;
+  }
+
+  .title {
+    text-align: center;
+    color: white;
+  }
+
+  .middle {
+    margin-bottom: 20px;
+  }
+
+  .middle-row {
+    margin-bottom: 1px;
+    border-left: solid 2px green;
+    background: #f1f1f1;
+    padding-top: 4px;
+    padding-bottom: 4px;
+  }
+
+  .middle-row-name {
+    height: 60px;
+    line-height: 60px;
+    width: 180px;
+    text-align: right;
+    padding-right: 10px;
+  }
+
+  .middle-row-inp-wrap {
+    height: 60px;
+    line-height: 60px;
+    width: 400px;
+    border: solid 1px gainsboro;
+  }
+
+  .inp-target {
+    display: block;
+    height: 100%;
+    width: 100%;
+    border: none;
+  }
+
+  .btn {
+    width: 300px;
+    margin: 0px auto;
+    background: #23b900;
+    color: white;
+    height: 60px;
+    line-height: 60px;
+    text-align: center;
+    cursor: pointer;
+  }
+
+  .black-btn {
+    background: black;
+  }
+
+  .btn:hover {
+    background: #2adc00;
+  }
+
+  .black-btn:hover {
+    background: #404040;
+  }
+
+  .au {
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+  }
+
+  .hadListitem {
+    height: 64px;
+    line-height: 64px;
+    background: darkcyan;
+    margin-bottom: 2px;
+    font-size: 24px;
+  }
+
+  .b-red {
+    background: red;
+  }
+</style>
+
+<body>
+<div id="bodyw"></div>
+
+<div id="bodywcontrol">
+
+  <div id="hadList">
+    <div class="hadListitem"></div>
+  </div>
+  <div class="form-wrap">
+
+    <!--  <audio src="./static/playfail.mp3" controls></audio>-->
+    <div class="middle">
+      <!--    策略配置-->
+      <div class="middle-row">
+        <div class="middle-row-name f-left">name</div>
+        <div class="middle-row-inp-wrap f-left">
+          <input class="inp-target" id="nameF">
+        </div>
+        <div class="clear"></div>
+      </div>
+
+
+      <div class="middle-row">
+        <div class="middle-row-name f-left">cat</div>
+        <div class="middle-row-inp-wrap f-left">
+          <input class="inp-target" id="typeF">
+        </div>
+        <div class="clear"></div>
+      </div>
+
+
+      <div class="middle-row">
+        <div class="middle-row-name f-left">condition</div>
+        <div class="middle-row-inp-wrap f-left">
+          <input class="inp-target" id="conditionF">
+        </div>
+        <div class="clear"></div>
+      </div>
+
+      <div class="middle-row">
+        <div class="middle-row-name f-left">value</div>
+        <div class="middle-row-inp-wrap f-left">
+          <input class="inp-target" type="number" id="valueF">
+        </div>
+        <div class="clear"></div>
+      </div>
+
+
+    </div>
+    <div id="start" class="btn f-right">添加</div>
+    <div id="stopAction" class="btn black-btn f-left">删除</div>
+    <div class="clear"></div>
+
+
+  </div>
+  <div class="au">
+    <audio src="./static/playok.mp3" id="playok" controls></audio>
+  </div>
+</div>
+
+</body>
+</html>
+<script>
+
+  /*
+  * 1.显示行情历史
+  * 2.重新开始接口
+  * */
+  window.onload = function () {
+
+    bodyw.onclick = function () {
+      if (bodywcontrol.style.opacity + "" === "1") {
+        bodywcontrol.style.opacity = 0;
+      }else {
+        bodywcontrol.style.opacity = 1;
+      }
+    };
+
+    let playok = document.getElementById("playok");
+    let tipsList = [];
+
+    //获取配置参数
+    function getReqParam() {
+      let param = {
+        name: nameF.value,
+        value: valueF.value,
+        condition: conditionF.value,
+        type: typeF.value.toUpperCase(),
+      };
+      return JSON.stringify(param);
+    }
+
+    setInterval(() => {
+      getList()
+    }, 100);
+
+    function setList(list) {
+      console.log(list);
+      let ism = tipsList.find(item => item.isMatch);
+      if (ism) {
+        playok.play()
+      } else {
+        playok.pause();
+      }
+      tipsList = list;
+      hadList.innerHTML = tipsList.map(item => {
+        if (item.isMatch) {
+          return `<div class="hadListitem b-red">${item.name} ---- ${item.price}----${item.condition}----${item.value}</div>`
+        } else {
+          return `<div class="hadListitem">${item.name} ---- ${item.price}--不--${item.condition}----${item.value}</div>`
+        }
+      }).join("")
+    }
+
+    function getList() {
+      fetch("/tips/list")
+      .then(res => res.json())
+      .then(res => {
+        setList(res.list)
+      });
+    }
+
+    //删除
+    stopAction.onclick = function () {
+      let body = getReqParam();
+      console.log(body);
+      fetch("/tips/deleteByName", {
+        method: "POST",
+        body,
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        }
+      })
+      .then(res => res.json())
+      .then(res => {
+        setList(res.list)
+
+      });
+    };
+    //添加
+    start.onclick = function () {
+      let body = getReqParam();
+      console.log(body);
+      fetch("/tips/add", {
+        method: "POST",
+        body,
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        }
+      })
+      .then(res => res.json())
+      .then(res => {
+        setList(res.list)
+      });
+    };
+
+
+
+    /*
+  * 1.显示行情历史
+  * 2.重新开始接口
+  * */
+      getPrice();
+      setInterval(() => {
+        getPrice()
+      }, 1000);
+
+      function getPrice() {
+        fetch("http://47.100.13.168:3009/btc-intime")
+        .then(res => res.json())
+        .then(res => {
+          console.log(res);
+          let l = res.longPrice;
+          let s = res.shortPrice;
+
+          if (parseFloat(res.longPrice) !== 0 && res.longPrice < res.price) {
+            l = "↑" + res.longPrice
+          }
+          if (parseFloat(res.shortPrice) !== 0 && res.shortPrice > res.price) {
+            s = "↑" + res.shortPrice
+          }
+
+          title.innerHTML = res.price + " - " + l + " - " + s;
+        });
+      }
+
+
+
+  }
+
+
+</script>

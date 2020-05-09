@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title id="title">启动配置</title>
+</head>
+<body>
+</body>
+</html>
+<script>
+  /*
+  * 1.显示行情历史
+  * 2.重新开始接口
+  * */
+  window.onload = function () {
+    getPrice();
+    setInterval(() => {
+      getPrice()
+    }, 1000);
+
+    function getPrice() {
+      fetch("/eos-intime")
+      .then(res => res.json())
+      .then(res => {
+        console.log(res);
+        let l = res.longPrice;
+        let s = res.shortPrice;
+
+        if (parseFloat(res.longPrice) !== 0 && res.longPrice < res.price) {
+          l = "↑" + res.longPrice
+        }
+        if (parseFloat(res.shortPrice) !== 0 && res.shortPrice > res.price) {
+          s = "↑" + res.shortPrice
+        }
+
+        title.innerHTML = res.price + " - " + l + " - " + s;
+      });
+    }
+  }
+
+
+</script>

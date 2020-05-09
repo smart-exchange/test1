@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>启动配置</title>
+</head>
+<style>
+  * {
+    padding: 0px;
+    margin: 0px;
+  }
+
+  .f-left {
+    float: left;
+  }
+
+  .f-right {
+    float: right;
+  }
+
+  .clear {
+    clear: both;
+  }
+
+  .green {
+    color: green;
+  }
+
+  .red {
+    color: red;
+  }
+
+  .form-wrap {
+    width: 620px;
+    box-shadow: 0px 1px 1px 2px gainsboro;
+    padding: 10px;
+    margin: 10px auto;
+    background: #c50000;
+  }
+
+  .title {
+    text-align: center;
+    color: white;
+  }
+
+  .middle {
+    margin-top: 10px;
+    margin-bottom: 20px;
+  }
+
+  .middle-row {
+    margin-bottom: 1px;
+    border-left: solid 2px green;
+    background: #f1f1f1;
+    padding-top: 4px;
+    padding-bottom: 4px;
+  }
+
+  .middle-row-name {
+    height: 32px;
+    line-height: 32px;
+    width: 180px;
+    text-align: right;
+    padding-right: 10px;
+  }
+
+  .middle-row-inp-wrap {
+    height: 32px;
+    line-height: 32px;
+    width: 400px;
+    border: solid 1px gainsboro;
+  }
+
+  .inp-target {
+    display: block;
+    height: 100%;
+    width: 100%;
+    border: none;
+  }
+
+  .tips {
+    padding-left: 190px;
+    font-size: 14px;
+    color: darkgray;
+    width: 400px;
+  }
+
+  .btn {
+    width: 300px;
+    margin: 0px auto;
+    background: #23b900;
+    color: white;
+    height: 40px;
+    line-height: 40px;
+    text-align: center;
+    cursor: pointer;
+  }
+
+  .black-btn {
+    background: black;
+  }
+
+  .btn:hover {
+    background: #2adc00;
+  }
+
+  .black-btn:hover {
+    background: #404040;
+  }
+</style>
+<body>
+
+<div class="form-wrap">
+  <h3 class="title">小时/分钟级别波段交易--策略配置</h3>
+  <div class="middle">
+
+
+    <div class="middle-row">
+      <div class="middle-row-name f-left">开始时间</div>
+      <div class="middle-row-inp-wrap f-left">
+        <input class="inp-target" type="datetime-local" id="startTime">
+      </div>
+      <div class="clear"></div>
+    </div>
+
+    <div class="middle-row">
+      <div class="middle-row-name f-left">结束时间</div>
+      <div class="middle-row-inp-wrap f-left">
+        <input class="inp-target" type="datetime-local" id="endTime">
+      </div>
+      <div class="clear"></div>
+    </div>
+
+    <div class="middle-row">
+      <div class="middle-row-name f-left">刷新行情频率(秒)</div>
+      <div class="middle-row-inp-wrap f-left">
+        <input class="inp-target" type="number" id="gapTime" placeholder="默认1秒">
+      </div>
+      <div class="clear"></div>
+    </div>
+
+    <!--    策略配置-->
+
+    <div class="middle-row">
+      <div class="middle-row-name f-left">基准价(元)</div>
+      <div class="middle-row-inp-wrap f-left">
+        <input class="inp-target" type="number" id="basicPrice">
+      </div>
+      <div class="clear"></div>
+      <div class="tips">基于基准价波动</div>
+    </div>
+    <div class="middle-row">
+      <div class="middle-row-name f-left">入场交易量</div>
+      <div class="middle-row-inp-wrap f-left">
+        <input class="inp-target" type="number" id="fHand">
+      </div>
+      <div class="clear"></div>
+      <div class="tips">第一手交易数量</div>
+    </div>
+    <div class="middle-row">
+      <div class="middle-row-name f-left">入场波动率</div>
+      <div class="middle-row-inp-wrap f-left">
+        <input class="inp-target" type="number" placeholder="默认低于基准价0.0001" id="fHandRate">
+      </div>
+      <div class="clear"></div>
+      <div class="tips">第一手买入点</div>
+    </div>
+    <div class="middle-row">
+      <div class="middle-row-name f-left">交易费率</div>
+      <div class="middle-row-inp-wrap f-left">
+        <input class="inp-target" type="number" placeholder="默认0.001" id="feeRate">
+      </div>
+      <div class="clear"></div>
+      <div class="tips">计算收益</div>
+    </div>
+
+
+    <div class="middle-row">
+      <div class="middle-row-name f-left">每手最小交易量</div>
+      <div class="middle-row-inp-wrap f-left">
+        <input class="inp-target" type="number" id="minExchange">
+      </div>
+      <div class="clear"></div>
+      <div class="tips">小于这个数据，就不会交易，每手交易量根据波动级别计算的</div>
+    </div>
+    <div class="middle-row">
+      <div class="middle-row-name f-left">最小波动级别</div>
+      <div class="middle-row-inp-wrap f-left">
+        <input class="inp-target" type="number" placeholder="默认0.001" id="gardRate">
+      </div>
+      <div class="clear"></div>
+      <div class="tips">基于基准价计算波动，波动小于这个级别，就不会交易</div>
+    </div>
+    <div class="middle-row">
+      <div class="middle-row-name f-left">交易的梯度</div>
+      <div class="middle-row-inp-wrap f-left">
+        <input class="inp-target" type="number" id="exchangeGrad">
+      </div>
+      <div class="clear"></div>
+      <div class="tips">基于基准价计算波动，波动大一级，交易数量添加数量，最好根据账户资金设定，
+        不然数量大资金不够无法完成交易
+      </div>
+    </div>
+    <div class="middle-row">
+      <div class="middle-row-name f-left">最大收益率</div>
+      <div class="middle-row-inp-wrap f-left">
+        <input class="inp-target" type="number" placeholder="默认300%" id="maxYearRate">
+      </div>
+      <div class="clear"></div>
+      <div class="tips">此交易时间段，如果达到期望年化收益，平仓停止交易</div>
+    </div>
+
+
+    <div class="middle-row">
+      <div class="middle-row-name f-left">最大仓位</div>
+      <div class="middle-row-inp-wrap f-left">
+        <input class="inp-target" type="number" placeholder="默认0.5" id="maxExchangeRate">
+      </div>
+      <div class="clear"></div>
+    </div>
+    <div class="middle-row">
+      <div class="middle-row-name f-left">拒绝卖出波动</div>
+      <div class="middle-row-inp-wrap f-left">
+        <input class="inp-target" type="number" placeholder="默认0.06" id="rejectGardRateIn">
+      </div>
+      <div class="clear"></div>
+      <div class="tips">根据设置的级别与交易时间来定，基于基准价计算的波动</div>
+    </div>
+
+    <div class="middle-row">
+      <div class="middle-row-name f-left">拒绝买入波动</div>
+      <div class="middle-row-inp-wrap f-left">
+        <input class="inp-target" type="number" placeholder="默认0.04" id="rejectGardRateOut">
+      </div>
+      <div class="clear"></div>
+      <div class="tips">根据设置的级别与交易时间来定，基于基准价计算的波动</div>
+    </div>
+    <!--    <div class="middle-row">-->
+    <!--      <div class="middle-row-name f-left">是否做空</div>-->
+    <!--      <div class="middle-row-inp-wrap f-left">-->
+    <!--        <input class="inp-target" type="radio" id="isShort">-->
+    <!--      </div>-->
+    <!--      <div class="clear"></div>-->
+    <!--      <div class="tips">合约交易中，可以配置做空，第一手可能卖出,</div>-->
+    <!--    </div>-->
+
+    <div class="middle-row">
+      <div class="middle-row-name f-left">爆仓价率</div>
+      <div class="middle-row-inp-wrap f-left">
+        <input class="inp-target" type="number" placeholder="默认0.5" id="burstRate">
+      </div>
+      <div class="clear"></div>
+      <div class="tips">爆仓价位大于这个比率，就停止交易，必须平仓一定数量继续交易</div>
+    </div>
+
+  </div>
+  <div id="start" class="btn f-right">启动交易系统</div>
+  <div id="stopAction" class="btn black-btn f-left">停止交易</div>
+  <div class="clear"></div>
+</div>
+
+
+</body>
+</html>
+<script>
+  /*
+  * 1.显示行情历史
+  * 2.重新开始接口
+  * */
+  window.onload = function () {
+    //获取配置参数
+    function getReqParam() {
+      let param = {
+        startTime: startTime.value,
+        endTime: endTime.value,
+        gapTime: gapTime.value,
+
+        basicPrice: basicPrice.value,
+        fHand: fHand.value,
+        fHandRate: fHandRate.value,
+        feeRate: feeRate.value,
+
+        minExchange: minExchange.value,
+        gardRate: gardRate.value,
+        exchangeGrad: exchangeGrad.value,
+        maxYearRate: maxYearRate.value,
+
+        maxExchangeRate: maxExchangeRate.value,
+        rejectGardRateIn: rejectGardRateIn.value,
+        rejectGardRateOut: rejectGardRateOut.value,
+
+        burstRate: burstRate.value,
+
+      };
+      for (let key in param) {
+        if (param[key] === "") {
+          delete param[key];
+          if (key === "basicPrice" ||
+            key === "fHand" ||
+            key === "minExchange" ||
+            key === "exchangeGrad") {
+            return false;
+          }
+        }
+      }
+      return param;
+    }
+
+    //对象转字符串
+    function getQueryByParam(param) {
+      let pArr = [];
+      for (let key in param) {
+        pArr.push(key + "=" + param[key]);
+      }
+      return pArr.join("&");
+    }
+
+    //停止
+    stopAction.onclick = function () {
+      fetch("/stop")
+      .then(res => res.json())
+      .then(res => {
+        console.log(res);
+        alert(res.res)
+      });
+    };
+    //开始
+    start.onclick = function () {
+      let param = getReqParam();
+      if (!param) {
+        alert("没默认值得必须填写");
+        return;
+      }
+      let query = getQueryByParam(param);
+      console.log(param);
+      console.log(query);
+      fetch("/start?" + query)
+      .then(res => res.json())
+      .then(res => {
+        console.log(res);
+        alert(res.res)
+      });
+    };
+  }
+
+
+</script>

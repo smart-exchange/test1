@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>瀑布卖出点监控-模型调参数</title>
+  <script src="https://cdn.bootcss.com/echarts/4.2.1/echarts.min.js"></script>
+  <style>
+    .body-wrap {
+      margin: 0px auto;
+      padding-bottom: 50px;
+    }
+
+    .btn-wrap {
+      height: 50px;
+    }
+
+    .btn-wrap .btn {
+      cursor: pointer;
+      background: darkcyan;
+      color: #f1f1f1;
+      width: 100px;
+      height: 40px;
+      line-height: 40px;
+      text-align: center;
+      margin-right: 10px;
+      float: left;
+    }
+
+    .btn-wrap .btn:hover {
+      background: darkgreen;
+    }
+
+    .btn-wrap .btnStop {
+      background: red;
+    }
+
+
+    .f-left {
+      float: left;
+    }
+
+    .f-right {
+      float: right;
+    }
+    .clear{
+      clear: both;
+    }
+
+    .row {
+      border: solid 1px green;
+      margin-bottom: 2px;
+    }
+
+    .row1 {
+      height: 30px;
+      background: #10afaf;
+      border-bottom: solid 1px green;
+      line-height: 30px;
+      padding: 0px 10px;
+      color: white;
+    }
+    .row1 .scoreTotal{
+      width: 120px;
+    }
+    .row1 .time{
+
+    }
+    .row1 .lastPrice{
+      width: 150px;
+    }
+    .row1 .detaildes{
+    }
+
+    .row2 {
+      padding-bottom: 2px;
+      padding-top: 2px;
+    }
+
+    .col {
+      float: left;
+      width: 220px;
+      overflow: hidden;
+      height: 54px;
+      background: darkcyan;
+      margin-left: 2px;
+      margin-right: 2px;
+      margin-bottom: 2px;
+      font-size: 12px;
+      color: white;
+      line-height: 18px;
+    }
+
+    .b-red {
+      background: red;
+    }
+    .b-gray{
+      background: gray;
+    }
+
+  </style>
+</head>
+<body>
+<div class="body-wrap">
+  <!--24-->
+  <h3>历史数据分钟级别行情</h3>
+  <div>此行情中有瀑布暴跌点，下面模拟预测这个附近点</div>
+  <div id="main" style="height:460px;"></div>
+  <h3>预测模拟瀑布点</h3>
+  <div>行情每分钟来一次，预测是通过前50分钟的数据进行预测。这里是用真实数据模拟，我把间隔一分钟设置为了间隔0.25秒</div>
+
+  <div id="main1" style="height:460px;"></div>
+  <h3>预测得分</h3>
+  <div>基准分为8，得分越高表示越到暴跌点，得分低说明是波动行情</div>
+  <div class="btn-wrap">
+    <div id="btnRestart" class="btnRestart btn">开始</div>
+    <div id="btnStop" class="btnStop btn">暂停</div>
+    <div id="btnGoon" class="btnGoon btn">继续</div>
+  </div>
+  <div id="main2" style="height:460px;"></div>
+  <h3>预测信息（越新数据展示在越前面）</h3>
+  <div>历史信息展示过多容易造成页面卡顿，这里控制最多展示前400条预测详情数据。灰色背景代表不满足条件</div>
+  <div id="log">
+    <!--    <div class="row">-->
+    <!--      <div class="row1">-->
+    <!--        <div class="f-left">得分：1</div>-->
+    <!--        <div class="f-right">结果：结果</div>-->
+    <!--      </div>-->
+    <!--      <div class="row2">-->
+    <!--        <div class="col">-->
+    <!--          <div>条件名称：阳阴线比例（阳/阴）</div>-->
+    <!--          <div>分数：factorValue</div>-->
+    <!--          <div>描述：des</div>-->
+    <!--        </div>-->
+
+    <!--        <div class="col">-->
+    <!--          <div>条件名称：交易量总数</div>-->
+    <!--          <div>分数：factorValue</div>-->
+    <!--          <div>描述：des</div>-->
+    <!--        </div>-->
+    <!--      </div>-->
+    <!--    </div>-->
+
+  </div>
+</div>
+</body>
+</html>
+<script>
+  /*
+  * 1.显示行情历史
+  * 2.声音提醒接口
+  * */
+  window.onload = function () {
+
+    var upColor = '#00da3c';
+    var downColor = '#ec0000';
+    let myChart = echarts.init(document.getElementById('main'));
+    let myChart1 = echarts.init(document.getElementById('main1'));
+    let myChart2 = echarts.init(document.getElementById('main2'));
+
+    /*
+    * 格式化数据
+    * */
+    function splitData(rawData) {
+      var categoryData = [];
+      var values = [];
+      var volumes = [];
+      for (var i = 0; i < rawData.length; i++) {
+        categoryData.push(rawData[i].splice(0, 1)[0]);
+        values.push(rawData[i]);
+        volumes.push([i, rawData[i][4], rawData[i][0] > rawData[i][1] ? 1 : -1]);
+      }
+      return {
+        categoryData: categoryData,
+        values: values,
+        volumes: volumes
+      };
+    }
+
+    /*
+    * 计算均线值
+    * @params dayCount 前几天
+    * @data 行情数据
+    * @return 返回均线历史数据
+    * */
+    function calculateMA(dayCount, data) {
+      var result = [];
+      for (var i = 0, len = data.values.length; i < len; i++) {
+        if (i < dayCount) {
+          result.push('-');
+          continue;
+        }
+        var sum = 0;
+        for (var j = 0; j < dayCount; j++) {
+          sum += data.values[i - j][1];
+        }
+        result.push(+(sum / dayCount).toFixed(3));
+      }
+      return result;
+    }
+
+    fetch("/getPreData")
+    .then(res => res.json())
+    .then(res => {
+      renderTopData(res.data);
+    });
+
+    /*
+    * 渲染顶部的图表
+    * */
+    function renderTopData(r) {
+      let d = r.map(item => {
+        return [
+          item[0],
+          parseFloat(item[1]),
+          parseFloat(item[4]),
+          parseFloat(item[3]),
+          parseFloat(item[2]),
+          parseFloat(item[6]),
+        ]
+      });
+      var data = splitData(d);
+      myChart.setOption(option = {
+        backgroundColor: '#fff',
+        animation: false,
+        legend: {
+          bottom: 10,
+          left: 'center',
+          data: ['BTC', 'MA5', 'MA10', 'MA20', 'MA30']
+        },
+        tooltip: {
+          trigger: 'axis',
+          axisPointer: {
+            type: 'cross'
+          },
+          backgroundColor: 'rgba(245, 245, 245, 0.8)',
+          borderWidth: 1,
+          borderColor: '#ccc',
+          padding: 10,
+          textStyle: {
+            color: '#000'
+          },
+          position: function (pos, params, el, elRect, size) {
+            var obj = {top: 10};
+            obj[['left', 'right'][+(pos[0] < size.viewSize[0] / 2)]] = 30;
+            return obj;
+          }
+          // extraCssText: 'width: 170px'
+        },
+        axisPointer: {
+          link: {xAxisIndex: 'all'},
+          label: {
+            backgroundColor: '#777'
+          }
+        },
+        toolbox: {
+          feature: {
+            dataZoom: {
+              yAxisIndex: false
+            },
+            brush: {
+              type: ['lineX', 'clear']
+            }
+          }
+        },
+        brush: {
+          xAxisIndex: 'all',
+          brushLink: 'all',
+          outOfBrush: {
+            colorAlpha: 0.1
+          }
+        },
+        visualMap: {
+          show: false,
+          seriesIndex: 5,
+          dimension: 2,
+          pieces: [{
+            value: 1,
+            color: downColor
+          }, {
+            value: -1,
+            color: upColor
+          }]
+        },
+        grid: [
+          {
+            left: '10%',
+            right: '8%',
+            height: '50%'
+          },
+          {
+            left: '10%',
+            right: '8%',
+            top: '63%',
+            height: '16%'
+          }
+        ],
+        xAxis: [
+          {
+            type: 'category',
+            data: data.categoryData,
+            scale: true,
+            boundaryGap: false,
+            axisLine: {onZero: false},
+            splitLine: {show: false},
+            splitNumber: 20,
+            min: 'dataMin',
+            max: 'dataMax',
+            axisPointer: {
+              z: 100
+            }
+          },
+          {
+            type: 'category',
+            gridIndex: 1,
+            data: data.categoryData,
+            scale: true,
+            boundaryGap: false,
+            axisLine: {onZero: false},
+            axisTick: {show: false},
+            splitLine: {show: false},
+            axisLabel: {show: false},
+            splitNumber: 20,
+            min: 'dataMin',
+            max: 'dataMax'
+          }
+        ],
+        yAxis: [
+          {
+            scale: true,
+            splitArea: {
+              show: true
+            }
+          },
+          {
+            scale: true,
+            gridIndex: 1,
+            splitNumber: 2,
+            axisLabel: {show: false},
+            axisLine: {show: false},
+            axisTick: {show: false},
+            splitLine: {show: false}
+          }
+        ],
+        dataZoom: [
+          {
+            type: 'inside',
+            xAxisIndex: [0, 1],
+            start: 0,
+            end: 100
+          },
+          {
+            show: true,
+            xAxisIndex: [0, 1],
+            type: 'slider',
+            top: '85%',
+            start: 0,
+            end: 100
+          }
+        ],
+        series: [
+          {
+            name: 'BTC',
+            type: 'candlestick',
+            data: data.values,
+            itemStyle: {
+              color: upColor,
+              color0: downColor,
+              borderColor: null,
+              borderColor0: null
+            },
+            tooltip: {
+              formatter: function (param) {
+                param = param[0];
+                return [
+                  'Date: ' + param.name + '<hr size=1 style="margin: 3px 0">',
+                  'Open: ' + param.data[0] + '<br/>',
+                  'Close: ' + param.data[1] + '<br/>',
+                  'Lowest: ' + param.data[2] + '<br/>',
+                  'Highest: ' + param.data[3] + '<br/>'
+                ].join('');
+              }
+            }
+          },
+          {
+            name: 'MA5',
+            type: 'line',
+            data: calculateMA(5, data),
+            smooth: true,
+            lineStyle: {
+              opacity: 0.5
+            }
+          },
+          {
+            name: 'MA10',
+            type: 'line',
+            data: calculateMA(10, data),
+            smooth: true,
+            lineStyle: {
+              opacity: 0.5
+            }
+          },
+          {
+            name: 'MA20',
+            type: 'line',
+            data: calculateMA(20, data),
+            smooth: true,
+            lineStyle: {
+              opacity: 0.5
+            }
+          },
+          {
+            name: 'MA30',
+            type: 'line',
+            data: calculateMA(30, data),
+            smooth: true,
+            lineStyle: {
+              opacity: 0.5
+            }
+          },
+          {
+            name: 'Volume',
+            type: 'bar',
+            xAxisIndex: 1,
+            yAxisIndex: 1,
+            data: data.volumes
+          }
+        ]
+      }, true);
+    }
+
+    //预测历史
+    let preHis = [];
+    let preHisScore = [];
+    //实时预测
+    getPrice();
+    let timer = null;
+
+    function getPrice() {
+      fetch("/pre")
+      .then(res => res.json())
+      .then(res => {
+        renderByData(res.dataInTime);
+        let detail = res.preResult;
+        let lastPrice = detail.lastPrice[0];
+
+        /*
+        * 历史总分
+        * 把预测得分显示为图表方便分析
+        * */
+        let t1 = preHisScore.find(item => item.lastPrice[0] + "" === lastPrice + "");
+        if (!t1) {
+          preHisScore.push(detail);
+          renderRreHisScore(preHisScore);
+        }
+
+        //最近100条预测历史
+        let t = preHis.find(item => item.lastPrice[0] + "" === lastPrice + "");
+        console.log(t);
+        if (!t) {
+          renderLogs(detail);
+        }
+      });
+    }
+
+    function renderRreHisScore(preHisScore) {
+      let dataY = preHisScore.map(item=>item.scoreTotal);
+      let dataX = preHisScore.map(item=>item.lastPrice[0]);
+      myChart2.setOption(option = {
+        xAxis: {
+          type: 'category',
+          data: dataX
+        },
+        yAxis: {
+          type: 'value',
+          max: -10,
+          min: 20,
+          interval: 1,
+        },
+        tooltip: {
+          trigger: 'axis',
+          axisPointer: {
+            type: 'cross',
+            label: {
+              backgroundColor: '#6a7985'
+            }
+          }
+        },
+        series: [{
+          data: dataY,
+          type: 'line',
+          smooth: true,
+          markLine: {
+            symbol: ['none', 'none'],
+            itemStyle: {
+              normal: {lineStyle: {color: "green"}}
+            },
+            silent: true,
+            data: [{
+              yAxis: 8
+            }]
+          }
+        }]
+      });
+    }
+    function renderLogs(detail) {
+      preHis.push(detail);
+      if (preHis.length > 400) {
+        /*
+        * 最多展示100条详情
+        * 防止卡顿
+        * */
+        preHis.shift();
+      }
+      let all = preHis.map(item => {
+        return renderRow(item)
+      });
+      all.reverse();
+      log.innerHTML = all.join("");
+    }
+
+    function renderRow(detail) {
+      let detailReason = detail.detailReason;
+      let pre = detail.pre;
+      let cls = `row1`;
+      if (pre) {
+        cls += " b-red"
+      }
+      let reasons = detailReason.map((item, index) => {
+        let cls = "col";
+        if(item.des.match("不满足条件")){
+          cls = "col b-gray";
+        }
+        return `<div class="${cls}">
+          <div>条件名称：${item.name}</div>
+          <div>分数：${parseFloat(item.factorValue).toFixed(3)}</div>
+          <div>描述：${item.des}</div>
+        </div>`
+      });
+
+      let r = `<div class="row">
+      <div class="${cls}">
+        <div class="f-left scoreTotal">得分：${parseFloat(detail.scoreTotal).toFixed(3)} | </div>
+        <div class="f-left time">时间：${detail.lastPrice[0]}</div>
+        <div class="f-right lastPrice">当前价格：${detail.lastPrice[1]}</div>
+        <div class="f-right detaildes">结果：${detail.des} | </div>
+      </div>
+      <div class="row2">
+        ${reasons.join("")}
+        <div class="clear"></div>
+      </div>
+    </div>`;
+      return r;
+    }
+
+    function renderByData(r) {
+      let d = r.map(item => {
+        return [
+          item[0],
+          parseFloat(item[1]),
+          parseFloat(item[4]),
+          parseFloat(item[3]),
+          parseFloat(item[2]),
+          parseFloat(item[6]),
+        ]
+      });
+      var data = splitData(d);
+      myChart1.setOption(option = {
+        backgroundColor: '#fff',
+        animation: false,
+        legend: {
+          bottom: 10,
+          left: 'center',
+          data: ['BTC', 'MA5', 'MA10', 'MA20', 'MA30']
+        },
+        tooltip: {
+          trigger: 'axis',
+          axisPointer: {
+            type: 'cross'
+          },
+          backgroundColor: 'rgba(245, 245, 245, 0.8)',
+          borderWidth: 1,
+          borderColor: '#ccc',
+          padding: 10,
+          textStyle: {
+            color: '#000'
+          },
+          position: function (pos, params, el, elRect, size) {
+            var obj = {top: 10};
+            obj[['left', 'right'][+(pos[0] < size.viewSize[0] / 2)]] = 30;
+            return obj;
+          }
+          // extraCssText: 'width: 170px'
+        },
+        axisPointer: {
+          link: {xAxisIndex: 'all'},
+          label: {
+            backgroundColor: '#777'
+          }
+        },
+        toolbox: {
+          feature: {
+            dataZoom: {
+              yAxisIndex: false
+            },
+            brush: {
+              type: ['lineX', 'clear']
+            }
+          }
+        },
+        brush: {
+          xAxisIndex: 'all',
+          brushLink: 'all',
+          outOfBrush: {
+            colorAlpha: 0.1
+          }
+        },
+        visualMap: {
+          show: false,
+          seriesIndex: 5,
+          dimension: 2,
+          pieces: [{
+            value: 1,
+            color: downColor
+          }, {
+            value: -1,
+            color: upColor
+          }]
+        },
+        grid: [
+          {
+            left: '10%',
+            right: '8%',
+            height: '50%'
+          },
+          {
+            left: '10%',
+            right: '8%',
+            top: '63%',
+            height: '16%'
+          }
+        ],
+        xAxis: [
+          {
+            type: 'category',
+            data: data.categoryData,
+            scale: true,
+            boundaryGap: false,
+            axisLine: {onZero: false},
+            splitLine: {show: false},
+            splitNumber: 20,
+            min: 'dataMin',
+            max: 'dataMax',
+            axisPointer: {
+              z: 100
+            }
+          },
+          {
+            type: 'category',
+            gridIndex: 1,
+            data: data.categoryData,
+            scale: true,
+            boundaryGap: false,
+            axisLine: {onZero: false},
+            axisTick: {show: false},
+            splitLine: {show: false},
+            axisLabel: {show: false},
+            splitNumber: 20,
+            min: 'dataMin',
+            max: 'dataMax'
+          }
+        ],
+        yAxis: [
+          {
+            scale: true,
+            splitArea: {
+              show: true
+            }
+          },
+          {
+            scale: true,
+            gridIndex: 1,
+            splitNumber: 2,
+            axisLabel: {show: false},
+            axisLine: {show: false},
+            axisTick: {show: false},
+            splitLine: {show: false}
+          }
+        ],
+        dataZoom: [
+          {
+            type: 'inside',
+            xAxisIndex: [0, 1],
+            start: 0,
+            end: 100
+          },
+          {
+            show: true,
+            xAxisIndex: [0, 1],
+            type: 'slider',
+            top: '85%',
+            start: 0,
+            end: 100
+          }
+        ],
+        series: [
+          {
+            name: 'BTC',
+            type: 'candlestick',
+            data: data.values,
+            itemStyle: {
+              color: upColor,
+              color0: downColor,
+              borderColor: null,
+              borderColor0: null
+            },
+            tooltip: {
+              formatter: function (param) {
+                param = param[0];
+                return [
+                  'Date: ' + param.name + '<hr size=1 style="margin: 3px 0">',
+                  'Open: ' + param.data[0] + '<br/>',
+                  'Close: ' + param.data[1] + '<br/>',
+                  'Lowest: ' + param.data[2] + '<br/>',
+                  'Highest: ' + param.data[3] + '<br/>'
+                ].join('');
+              }
+            }
+          },
+          {
+            name: 'MA5',
+            type: 'line',
+            data: calculateMA(5, data),
+            smooth: true,
+            lineStyle: {
+              opacity: 0.5
+            }
+          },
+          {
+            name: 'MA10',
+            type: 'line',
+            data: calculateMA(10, data),
+            smooth: true,
+            lineStyle: {
+              opacity: 0.5
+            }
+          },
+          {
+            name: 'MA20',
+            type: 'line',
+            data: calculateMA(20, data),
+            smooth: true,
+            lineStyle: {
+              opacity: 0.5
+            }
+          },
+          {
+            name: 'MA30',
+            type: 'line',
+            data: calculateMA(30, data),
+            smooth: true,
+            lineStyle: {
+              opacity: 0.5
+            }
+          },
+          {
+            name: 'Volume',
+            type: 'bar',
+            xAxisIndex: 1,
+            yAxisIndex: 1,
+            data: data.volumes
+          }
+        ]
+      }, true);
+
+    }
+
+    //进入页面开始并且停止
+    fetch("/start")
+    .then(res => res.json())
+    .then(res => {
+      preHis = [];
+      log.innerHTML = "";
+      fetch("/stop")
+      .then(res => res.json())
+      .then(res => {
+        clearInterval(timer);
+      });
+    });
+
+    //开始按钮
+    btnRestart.onclick = function () {
+      fetch("/start")
+      .then(res => res.json())
+      .then(res => {
+        preHis = [];
+        preHisScore = [];
+        log.innerHTML = "";
+        renderRreHisScore(preHisScore);
+        clearInterval(timer);
+        timer = setInterval(() => {
+          getPrice()
+        }, 250);
+      });
+    };
+    //停止
+    btnStop.onclick = function () {
+      fetch("/stop")
+      .then(res => res.json())
+      .then(res => {
+        clearInterval(timer);
+      });
+    };
+    //继续
+    btnGoon.onclick = function () {
+      fetch("/goon")
+      .then(res => res.json())
+      .then(goon => {
+        clearInterval(timer);
+        timer = setInterval(() => {
+          getPrice()
+        }, 250);
+      });
+    };
+  }
+</script>

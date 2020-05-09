@@ -1,0 +1,21 @@
+{
+  "name": "data-merge",
+  "version": "1.0.0",
+  "description": "目录 ticker-history-to200229 是从交易所保存的源数据，这里把数据简单处理",
+  "main": "index.js",
+  "scripts": {
+    "getData": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "exceljs": "^3.8.0",
+    "json2csv": "^4.5.4",
+    "koa": "^2.11.0",
+    "koa-bodyparser": "^4.2.1",
+    "koa-router": "^8.0.7",
+    "koa-static": "^5.0.0",
+    "koa2-cors": "^2.0.6"
+  }
+}

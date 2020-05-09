@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>实时面板</title>
+  <script src="https://cdn.bootcss.com/echarts/4.2.1/echarts.min.js"></script>
+  <script src="index.js"></script>
+</head>
+<style>
+  * {
+    padding: 0px;
+    margin: 0px;
+  }
+
+  .body-wrap {
+    width: 945px;
+    margin: 1px auto;
+  }
+
+  .f-left {
+    float: left;
+  }
+
+  .f-right {
+    float: right;
+  }
+
+  .clear {
+    clear: both;
+  }
+
+  .green {
+    color: green;
+  }
+
+  .red {
+    color: red;
+  }
+
+  .btn {
+    cursor: pointer;
+    height: 36px;
+    line-height: 36px;
+    width: 180px;
+    background: darkcyan;
+    color: white;
+    text-align: center;
+    margin: 10px;
+  }
+
+  .all-info-wrap {
+    margin-left: 10px;
+    margin-top: 10px;
+
+  }
+
+  .all-info {
+    background: #c50000;
+    padding: 1px 1px 1px 1px;
+    /*box-shadow: 0px 1px 1px 2px gainsboro;*/
+  }
+
+  .all-info .row {
+    height: 30px;
+    line-height: 30px;
+    margin-bottom: 1px;
+  }
+
+  .all-info .row .col {
+    width: 300px;
+    font-size: 14px;
+    background: #f1f1f1;
+  }
+
+
+  .s-info-wrap {
+    margin-left: 15px;
+    margin-top: 10px;
+
+  }
+
+  .s-info {
+    background: #c50000;
+    padding: 1px 1px 1px 1px;
+    /*box-shadow: 0px 1px 1px 2px gainsboro;*/
+  }
+
+  .s-info .row {
+    height: 30px;
+    line-height: 30px;
+    margin-bottom: 1px;
+  }
+
+  .s-info .row .col {
+    width: 300px;
+    font-size: 14px;
+    margin-left: 1px;
+    background: #f1f1f1;
+  }
+
+
+  .e-his-wrap {
+    margin-left: 10px;
+    margin-top: 10px;
+  }
+
+  .e-his {
+    background: #c50000;
+    padding: 1px 1px 0px 1px;
+    /*box-shadow: 0px 1px 1px 2px gainsboro;*/
+    float: left;
+  }
+
+  .e-his .row {
+    height: 30px;
+    line-height: 30px;
+    margin-bottom: 1px;
+  }
+
+  .e-his .row .col {
+    width: 115px;
+    font-size: 14px;
+    background: #f1f1f1;
+  }
+</style>
+<body>
+<div class="body-wrap">
+
+  <!--<input id="restart" type="button" value="restart"/>-->
+  <div>
+    <div class="f-left all-info-wrap">
+      <h6>当前交易信息汇总</h6>
+      <div class="all-info" id="allInfo">
+        <div class="row">
+          <div class="f-left col">当前价格(元)：5.433</div>
+        </div>
+        <div class="row">
+          <div class="f-left col">开始交易资金(元)：5.433</div>
+        </div>
+        <div class="row">
+          <div class="f-left col">总共交易次数：5</div>
+        </div>
+        <div class="row">
+          <div class="f-left col">当前持仓：5</div>
+        </div>
+      </div>
+    </div>
+    <div class="f-left s-info-wrap">
+      <h6>策略信息</h6>
+      <div class="s-info" id="sInfo">
+        <div class="row">
+          <div class="f-left col">交易开始时间：14：20：23：233</div>
+          <div class="f-left col">交易结束时间: 21：20：23：233</div>
+        </div>
+        <div class="row">
+          <div class="f-left col">交易状态：交易中</div>
+          <div class="f-left col">交易币对: EOS-USD-SWAP</div>
+        </div>
+        <div class="row">
+          <div class="f-left col">预测波动基准价：5</div>
+          <div class="f-left col">最大仓位: 0.5</div>
+        </div>
+        <div class="row">
+          <div class="f-left col">拒绝交易买入波动：0.45</div>
+          <div class="f-left col">拒绝交易卖出波动: 0.5</div>
+        </div>
+        <div class="row">
+          <div class="f-left col">拒绝交易爆仓价率：0.45</div>
+          <div class="f-left col">最大年化收益率(%): 300</div>
+        </div>
+        <div class="row">
+          <div class="f-left col">波动级别：0.001</div>
+          <div class="f-left col">交易梯度: 100</div>
+        </div>
+        <div class="row">
+          <div class="f-left col">入场波动率：0.001</div>
+          <div class="f-left col">入场交易量: 100</div>
+        </div>
+        <div class="row">
+          <div class="f-left col">最小交易量：10</div>
+          <div class="f-left col">是否启用做空: false</div>
+        </div>
+        <div class="row">
+          <div class="f-left col">行情刷新频率（秒）：1</div>
+        </div>
+
+      </div>
+    </div>
+    <div class="clear"></div>
+  </div>
+
+  <div class="e-his-wrap">
+    <h6>交易历史</h6>
+    <div class="e-his">
+      <div class="row">
+        <div class="f-left col">时间(h:m:s:ms)</div>
+        <div class="f-left col">方向</div>
+        <div class="f-left col">数量</div>
+        <div class="f-left col">交易价格</div>
+        <div class="f-left col">交易级别</div>
+        <div class="f-left col">手续费</div>
+        <div class="f-left col">当前持仓</div>
+        <div class="f-left col">当前年化收益</div>
+      </div>
+
+      <div id="eHis">
+        <div class="row">
+          <div class="f-left col"> 12：12</div>
+          <div class="f-left col"> 买入</div>
+          <div class="f-left col"> 2000</div>
+          <div class="f-left col"> 5.421</div>
+          <div class="f-left col"> 1</div>
+          <div class="f-left col"> 3</div>
+          <div class="f-left col"> 34</div>
+          <div class="f-left col"> 0.3 %</div>
+        </div>
+      </div>
+
+
+    </div>
+    <div class="clear"></div>
+  </div>
+  <div id="getNew" class="btn">最新数据(默认60s自动刷)</div>
+  <!--行情曲线-->
+  <div id="main" style="height:460px;"></div>
+  <!--资金曲线-->
+  <div id="main2" style="height:460px;"></div>
+</div>
+</body>
+</html>
+<script>
+  /*
+  * 1.显示行情历史
+  * 2.重新开始接口
+  * */
+  window.onload = function () {
+    // restart.onclick = function () {
+    //   console.log("restart");
+    //   let startTime = new Date().toISOString();
+    //   let endTime = new Date(new Date().getTime() + 1000 * 60 * 60).toISOString();
+    //   let gapTime = 3;
+    //   let query = "startTime=" + startTime + "&endTime=" + endTime + "&gapTime=" + gapTime;
+    //   fetch("/restart?" + query)
+    //   .then(res => res.json())
+    //   .then(res => {
+    //     console.log(res)
+    //   });
+    // };
+    //----------
+    //行情历史信息
+    //-----------
+    let option = {
+      title: {
+        text: '实时行情'
+      },
+      tooltip: {},
+
+      grid: {
+        left: '3%',
+        right: '4%',
+        bottom: '3%',
+        containLabel: true
+      },
+      toolbox: {
+        feature: {
+          saveAsImage: {}
+        }
+      },
+      xAxis: {
+        type: 'category',
+        boundaryGap: false,
+        data: []
+      },
+      yAxis: {
+        type: 'value',
+        max: 4,
+        min: 6,
+        interval: 0.2,
+      },
+      series: [
+        {
+          name: '价格',
+          type: 'line',
+          data: [120, 132, 101, 134, 90, 230, 210],
+          markPoint: {
+            data: [
+              {
+                name: '坐标点',
+                value: "卖出200",
+                coord: [4, 1290],
+                itemStyle: {color: "green"},
+              },
+              {
+                name: '坐标点',
+                value: "买入200",
+                coord: [0, 820],
+                itemStyle: {color: "red"},
+              }
+            ],
+            label: {
+              formatter: '{c}'
+            }
+          },
+          markLine: {
+            symbol: ['none', 'none'],
+            itemStyle: {
+              normal: {lineStyle: {color: "green"}}
+            },
+            silent: true,
+            data: [{
+              yAxis: 4.5
+            }]
+          }
+        },
+      ]
+    };
+    //----------
+    //历史资金信息
+    //-----------
+    let option2 = {
+      title: {
+        text: '实时资金'
+      },
+      legend: {
+        data: []
+      },
+      tooltip: {
+        trigger: 'axis'
+      },
+      xAxis: {
+        type: 'category',
+        boundaryGap: false,
+        data: []
+      },
+      yAxis: {
+        max: 4500,
+        min: 5500,
+        type: 'value',
+        interval: 200,
+      },
+      series: [
+        {
+          name: '资金',
+          type: 'line',
+          data: []
+        },
+      ]
+    };
+    let myChart = echarts.init(document.getElementById('main'));
+    let myChart2 = echarts.init(document.getElementById('main2'));
+    //手动刷新
+    getNew.onclick = function () {
+      fetchEhis();
+    };
+    fetchEhis();
+    //默认1分钟刷一次
+    setInterval(function () {
+      fetchEhis();
+    }, 1000 * 60);
+
+    //刷新行情
+    function fetchEhis() {
+      fetch("/exchange-history")
+      .then(res => res.json())
+      .then(res => {
+        let {accountInfo, startGetTickHistoryOptions} = res;
+        console.log(accountInfo);
+        let priceHistory = accountInfo.tickerHistory;
+        let foundHistory = accountInfo.foundHistory;
+        let exchangeHistory = accountInfo.exchangeHistory;
+        //显示交易历史
+        setHisHtml(exchangeHistory);
+        //显示仓位汇总信息
+        setAllInfo(accountInfo);
+        //显示策略信息
+        setStragegyHtml(startGetTickHistoryOptions, accountInfo);
+        //设置Y轴刻度
+        option.yAxis = setTickerOptionsY(accountInfo);
+        option.xAxis.data = priceHistory.map((item) => {
+          let dd = new Date(item.time);
+          let time = dd.getHours()
+            + ":"
+            + dd.getMinutes()
+            + ":"
+            + dd.getSeconds()
+            + ":"
+            + dd.getMilliseconds();
+          return time;
+        });
+        option.series[0].data = priceHistory.map((item) => item.price);
+        option.series[0].markLine.data[0].yAxis = accountInfo.basicPrice;
+        option.series[0].markPoint.data = getMarkPoint(accountInfo, priceHistory);
+        myChart.setOption(option);
+
+        //设置Y轴刻度
+        option2.yAxis = setFoundOptionsY(accountInfo);
+        option2.xAxis.data = foundHistory.map((item) => {
+          let dd = new Date(item.time);
+          let time = dd.getHours()
+            + ":"
+            + dd.getMinutes()
+            + ":"
+            + dd.getSeconds()
+            + ":"
+            + dd.getMilliseconds();
+          return time;
+        });
+        option2.series[0].data = foundHistory.map((item) => item.found);
+        myChart2.setOption(option2);
+      });
+    }
+
+
+    /*
+    * 获取标记点
+    * 把交易点，插入到交易信息中
+    * */
+    function getMarkPoint(accountInfo, tickerHistory) {
+      let cache = [];
+      let exchangeHistory = accountInfo.exchangeHistory;
+      //交易点，从第一个开始取
+      let top = exchangeHistory.shift();
+      //缓存到另一个数组
+      cache.push(top);
+      //遍历交易信息
+      for (let index = 0; index < tickerHistory.length; index++) {
+        let item = tickerHistory[index];
+        if (top && item.time === top.time) {
+          console.log(top);
+          //有时间一样的数据
+          item.value = top.type + ":" + top.size;
+          item.coord = [index, item.price];
+          item.itemStyle = top.type === "买入" ? {color: "red"} : {color: "green"};
+          top = exchangeHistory.shift();
+          cache.push(top);
+        }
+      }
+      accountInfo.exchangeHistory = cache;
+      return tickerHistory.map((item, index) => {
+        return {
+          name: '坐标点' + index,
+          value: item.value,
+          coord: item.coord,
+          itemStyle: item.itemStyle,
+        }
+      })
+    }
+
+    /*
+    * 设置行情 Y 轴刻度
+    * */
+    function setTickerOptionsY(accountInfo) {
+      let max = (accountInfo.basicPrice * 1.05).toPrecision(4);
+      let min = (accountInfo.basicPrice * 0.95).toPrecision(4);
+      let interval = parseInt((accountInfo.basicPrice / 100) * 100) / 100;
+      let yAxis = {
+        max,
+        min,
+        type: 'value',
+        interval,
+      };
+      return yAxis;
+    }
+
+    /*
+    * 设置资金 Y 轴刻度
+    * */
+    function setFoundOptionsY(accountInfo) {
+      let max = (accountInfo.initFound * 1.05).toPrecision(4);
+      let min = (accountInfo.initFound * 0.95).toPrecision(4);
+      let interval = parseInt((accountInfo.initFound / 100) * 100) / 100;
+      let yAxis = {
+        max,
+        min,
+        type: 'value',
+        interval,
+      };
+      return yAxis;
+    }
+
+    //渲染html 设置策略信息
+    function setStragegyHtml(option, accountInfo) {
+      let strategyOptions = option.strategyOptions;
+      let ddS = new Date(option.startTime);
+      let ddE = new Date(option.endTime);
+      let timeS = ddS.getHours()
+        + ":"
+        + ddS.getMinutes()
+        + ":"
+        + ddS.getSeconds()
+        + ":"
+        + ddS.getMilliseconds();
+      let timeE = ddE.getHours()
+        + ":"
+        + ddE.getMinutes()
+        + ":"
+        + ddE.getSeconds()
+        + ":"
+        + ddE.getMilliseconds();
+      let html = `<div class="row">
+        <div class="f-left col">交易开始时间: ${timeS}</div>
+        <div class="f-left col">交易结束时间: ${timeE}</div>
+      </div>
+      <div class="row">
+        <div class="f-left col">行情刷新频率(秒): ${option.gapTime}</div>
+        <div class="f-left col">交易币对: ${option.ins_id}</div>
+      </div>
+      <div class="row">
+        <div class="f-left col">预测波动基准价: ${strategyOptions.basicPrice}</div>
+        <div class="f-left col">最大仓位: ${strategyOptions.maxExchangeRate}</div>
+      </div>
+      <div class="row">
+        <div class="f-left col">拒绝交易买入波动: ${strategyOptions.rejectGardRateIn}</div>
+        <div class="f-left col">拒绝交易卖出波动: ${strategyOptions.rejectGardRateOut}</div>
+      </div>
+      <div class="row">
+        <div class="f-left col">拒绝交易爆仓价率: ${strategyOptions.burstRate}</div>
+        <div class="f-left col">最大年化收益率(%): ${strategyOptions.maxYearRate}</div>
+      </div>
+      <div class="row">
+        <div class="f-left col">波动级别: ${strategyOptions.gardRate}</div>
+        <div class="f-left col">交易波动梯度: ${strategyOptions.exchangeGrad}</div>
+      </div>
+      <div class="row">
+        <div class="f-left col">入场波动率: ${strategyOptions.fHandRate}</div>
+        <div class="f-left col">入场交易量: ${strategyOptions.fHand}</div>
+      </div>
+      <div class="row">
+        <div class="f-left col">最小交易量: ${strategyOptions.minExchange}</div>
+        <div class="f-left col">是否启用做空: ${strategyOptions.isShort ? "是" : "否"}</div>
+      </div>
+      <div class="row">
+        <div class="f-left col">>0级: ${accountInfo.gradPrice.slice(0, 5)}</div>
+        <div class="f-left col"><0级: ${accountInfo.gradPrice.slice(6, 11)}</div>
+      </div>`;
+      sInfo.innerHTML = html;
+    }
+
+    //渲染html 交易历史
+    function setHisHtml(exchangeHistory) {
+      let aHtml = "";
+      exchangeHistory.map(item => {
+        let dd = new Date(item.time);
+        let time = dd.getHours()
+          + ":"
+          + dd.getMinutes()
+          + ":"
+          + dd.getSeconds()
+          + ":"
+          + dd.getMilliseconds();
+        let typeClass = item.type === "买入" ? "red" : "green";
+        aHtml += `<div class="row ${typeClass}">
+                  <div class="f-left col">${time}</div>
+                  <div class="f-left col"> ${item.type}</div>
+                  <div class="f-left col"> ${item.size}</div>
+                  <div class="f-left col"> ${item.price}</div>
+                  <div class="f-left col"> ${item.grad}</div>
+                  <div class="f-left col"> ${item.fee.toPrecision(5)}</div>
+                  <div class="f-left col"> ${item.cCount}</div>
+                  <div class="f-left col"> ${item.getYearRate}%</div>
+                </div>`;
+      });
+      eHis.innerHTML = aHtml;
+    }
+
+    //渲染html 汇总信息
+    function setAllInfo(accountInfo) {
+      let html = `<div class="row">
+                      <div class="f-left col">当前价格(元): ${accountInfo.price}</div>
+                  </div>
+                  <div class="row">
+                       <div class="f-left col">总盈利(元): ${accountInfo.getMoney.toPrecision(5)}</div>
+                  </div>
+                  <div class="row">
+                      <div class="f-left col">开始交易资金(元): ${accountInfo.initFound}</div>
+                  </div>
+                   <div class="row">
+                      <div class="f-left col">现有可用资金(元): ${accountInfo.found.toFixed(4)}</div>
+                  </div>
+                  <div class="row">
+                      <div class="f-left col">总共交易次数: ${accountInfo.times}</div>
+                  </div>
+                   <div class="row">
+                      <div class="f-left col">总花费手续费(元): ${accountInfo.fee.toPrecision(5)}</div>
+                  </div>
+                  <div class="row">
+                      <div class="f-left col">当前持仓量: ${accountInfo.cCount}</div>
+                  </div>
+                    <div class="row">
+                      <div class="f-left col">年化收益率: ${accountInfo.getYearRate}%</div>
+                  </div>
+                  <div class="row">
+                      <div class="f-left col">交易状态: ${accountInfo.status ? "交易" : "结束"}</div>
+                  </div>`;
+      allInfo.innerHTML = html;
+    }
+
+
+  }
+</script>

@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>简单模拟量化交易</title>
+  <script src="https://cdn.bootcss.com/echarts/4.2.1/echarts.min.js"></script>
+  <script src="mock.js"></script>
+</head>
+<body>
+<!--行情曲线-->
+<div id="main" style="height:460px;"></div>
+<!--资金曲线-->
+<div id="main2" style="height:460px;"></div>
+</body>
+</html>
+<script>
+  window.onload = function () {
+    //账户基本信息，交易结果
+    const accountInfo1 = {
+      name: "getmock",//账户名字
+      initFound: 100000,//初始资金，开始等于全部资金
+      found: 100000,//全部资金
+      price: 10,//当前数字货币价格，随便假设一个数，在交易过程中会实时变化
+      fee: 0,//手续费，开始没有交易为 0
+      times: 0,//交易次数，没有没有交易为 0
+      cCount: 0,//当前持仓（数字货币个数），开始没有交易
+      foundHistory: [],//资金历史信息，开始无
+    };
+    //账户基本信息，交易结果
+    const accountInfo2 = {
+      name: "getbtc",//账户名字
+      initFound: 100000,//初始资金，开始等于全部资金
+      found: 100000,//全部资金
+      price: 10,//当前数字货币价格，随便假设一个数，在交易过程中会实时变化
+      fee: 0,//手续费，开始没有交易为 0
+      times: 0,//交易次数，没有没有交易为 0
+      cCount: 0,//当前持仓（数字货币个数），开始没有交易
+      foundHistory: [],//资金历史信息，开始无
+    };
+    //----------
+    //行情历史信息
+    //-----------
+    let option = {
+      title: {
+        text: 'BTC行情历史信息2019/07/05--2020/02/08'
+      },
+      legend: {
+        data: ['模拟价格', '真实价格']
+      },
+      tooltip: {
+        trigger: 'axis'
+      },
+      xAxis: {
+        type: 'category',
+        boundaryGap: false,
+        data: []
+      },
+      yAxis: {
+        type: 'value'
+      },
+      series: [
+        {
+          name: '模拟价格',
+          type: 'line',
+          data: []
+        },
+        {
+          name: '真实价格',
+          type: 'line',
+          data: []
+        },
+      ]
+    };
+    //----------
+    //历史资金信息
+    //-----------
+    let option2 = {
+      title: {
+        text: '历史资金信息'
+      },
+      legend: {
+        data: ['模拟行情', '真实行情']
+      },
+      tooltip: {
+        trigger: 'axis'
+      },
+      xAxis: {
+        type: 'category',
+        boundaryGap: false,
+        data: []
+      },
+      yAxis: {
+        type: 'value'
+      },
+      series: [
+        {
+          name: '模拟价格资金',
+          type: 'line',
+          data: []
+        },
+        {
+          name: '真实价格资金',
+          type: 'line',
+          data: []
+        },
+      ]
+    };
+    let myChart = echarts.init(document.getElementById('main'));
+    let myChart2 = echarts.init(document.getElementById('main2'));
+    //获取模拟数据
+    fetch("/getmock")
+    .then(res => res.json())
+    .then(priceHistory => {
+      option.xAxis.data = priceHistory.map((item) => item.time);
+      option.series[0].data = priceHistory.map((item) =>item.price);
+      //显示模拟价格，绘制成图表
+      myChart.setOption(option);
+      //用户账户1模拟交易
+      init(accountInfo1, strategy2, priceHistory,  () =>{
+        console.log(accountInfo1.name + "假数据 模拟交易完毕，绘制资金曲线");
+        console.log(accountInfo1);
+        option2.xAxis.data = accountInfo1.foundHistory.map((item) => item.time);
+        option2.series[0].data = accountInfo1.foundHistory.map((item) => item.found);
+        //绘制资金曲线
+        myChart2.setOption(option2);
+      });
+    });
+    //真实数据
+    fetch("/getbtc")
+    .then(res => res.json())
+    .then(priceHistoryBtc => {
+      option.series[1].data = priceHistoryBtc.map((item) => {
+        return item.price;
+      });
+      myChart.setOption(option);
+      //模拟交易
+      init(accountInfo2, strategy2, priceHistoryBtc,  () =>{
+        console.log(accountInfo2.name + "真数据 模拟交易完毕，绘制资金曲线");
+        console.log(accountInfo2);
+        option2.xAxis.data = accountInfo2.foundHistory.map((item) => item.time);
+        option2.series[1].data = accountInfo2.foundHistory.map((item) =>item.found);
+        myChart2.setOption(option2);
+      });
+    });
+  }
+
+</script>
